@@ -181,40 +181,53 @@ std::istream & operator>>(std::istream &is, Card &card) {
   return is;
 }
 
-//returns true if lhs rank is less than than rhs rank
+//returns true if lhs is less than than rhs 
 //doesn't consider trump
 bool operator<(const Card &lhs, const Card &rhs) {
+  //tie breaking 
+  if(lhs.get_rank() == rhs.get_rank()) {
+    return lhs.get_suit() < rhs.get_suit();
+  }
   return lhs.get_rank() < rhs.get_rank();
 }
 
-//returns true if lhs rank less than or equal to rhs
+//returns true if lhs less than or equal to rhs
 //doesn't consider trump
 bool operator<=(const Card &lhs, const Card &rhs) {
-  return lhs.get_rank() <= rhs.get_rank();
+  if(lhs.get_rank() == rhs.get_rank()) {
+    return lhs.get_suit() <= rhs.get_suit();
+  }
+  return (lhs.get_rank() <= rhs.get_rank() || lhs == rhs);
 }
 
-//returns true if lhs rank greater than rhs rank
+//returns true if lhs greater than rhs 
 //doesn't consider trump
 bool operator>(const Card &lhs, const Card &rhs) {
+  if(lhs.get_rank() ==  rhs.get_rank()) {
+    return lhs.get_suit() > rhs.get_suit();
+  }
   return lhs.get_rank() > rhs.get_rank();
 }
 
 //returns true if lhs rank greater than or equal to rhs rank
 //doesn't consider trump
 bool operator>=(const Card &lhs, const Card &rhs) {
-  return lhs.get_rank() >= rhs.get_rank();
+  if(lhs.get_rank() == rhs.get_rank()) {
+    return lhs.get_suit() >= rhs.get_suit();
+  }
+  return (lhs.get_rank() >= rhs.get_rank() || lhs == rhs);
 }
 
-//returns true if lhs rank is equal to rhs rank
+//returns true if lhs and rhs are same card
 //doesn't consider trump
 bool operator==(const Card &lhs, const Card &rhs) {
-  return lhs.get_rank() == rhs.get_rank();
+  return (lhs.get_rank() == rhs.get_rank() && lhs.get_suit() ==  rhs.get_suit());
 }
 
 //returns true if lhs rank doesn't equal rhs rank
 //doesn't consider trump
 bool operator!=(const Card &lhs, const Card &rhs) {
-  return lhs.get_rank() != rhs.get_rank();
+  return !(lhs == rhs);
 }
 
 //next suit is other suit of same color
@@ -269,16 +282,7 @@ bool Card_less(const Card &a, const Card &b, Suit trump) {
       return true;
     }
   }
-  //if both same effective suit, go by rank
-  if(a.get_suit(trump) == b.get_suit(trump)) {
-    return a < b;
-  }
-  //finally, if cards are different, non trump suits, go by rank
-  if(a != b) {
-    return a < b;
-  }
-  //if none of those conditions applied, we have tied. tie break with suits
-  return a.get_suit(trump) < b.get_suit(trump);
+  return a < b;
 }
 
 /*
@@ -309,6 +313,5 @@ bool Card_less(const Card &a, const Card &b, const Card &led_card, Suit trump) {
   if(a.get_suit(trump) == led && b.get_suit(trump) == led) {
     return Card_less(a, b, trump);
   }
-  //if we have reached this point, we have tied. break tie with suits
-  return a.get_suit(trump) < b.get_suit(trump);
+  return a < b;
 }
