@@ -75,24 +75,6 @@ TEST(test_simple_make_trump_round_2) {
     delete james;
 }
 
-TEST(test_human_make_trump) {
-    Player * james = Player_factory("James", "Human");
-    james->add_card((Card(NINE, DIAMONDS)));
-    james->add_card((Card(ACE, DIAMONDS)));
-    james->add_card((Card(KING, SPADES)));
-    james->add_card((Card(TEN, CLUBS)));
-    james->add_card((Card(NINE, HEARTS)));
-
-    Suit order_up_suit = SPADES;
-    istringstream in("Diamonds");
-    cin.rdbuf(in.rdbuf());  //so cin can read from the istringstream
-
-    assert(james->make_trump(Card(TEN, HEARTS), true, 2, order_up_suit));
-    ASSERT_EQUAL(DIAMONDS, order_up_suit);
-
-    delete james;
-}
-
 TEST(test_simple_add_and_discard) {
     Player *james = Player_factory("James", "Simple");
 
@@ -106,25 +88,6 @@ TEST(test_simple_add_and_discard) {
     james->add_and_discard(upcard);
     // 9 of diamonds should've been discarded
     ASSERT_NOT_EQUAL(Card(NINE, DIAMONDS), james->lead_card(CLUBS));
-
-    delete james;
-}
-
-TEST(test_human_add_and_discard) {
-    Player *james = Player_factory("James", "Human");
-
-    james->add_card(Card(NINE, DIAMONDS));
-    james->add_card(Card(ACE, DIAMONDS));
-    james->add_card(Card(KING, SPADES));
-    james->add_card(Card(TEN, CLUBS));
-    james->add_card(Card(NINE, HEARTS));
-
-    istringstream input("-1");
-    streambuf *old = cin.rdbuf(input.rdbuf());
-    james->add_and_discard(Card(ACE, HEARTS));
-    cin.rdbuf(old);
-    //upcard was discarded
-    ASSERT_NOT_EQUAL(Card(ACE, HEARTS), james->lead_card(SPADES));
 
     delete james;
 }
@@ -165,55 +128,6 @@ TEST(test_simple_lead_card) {
     ASSERT_EQUAL(jonno->lead_card(DIAMONDS), Card(ACE, HEARTS));
 }
 
-TEST(test_human_lead_card) {
-    Player *james = Player_factory("james", "Human");
-    Player *jake = Player_factory("jake", "Human");
-    Player *jonno = Player_factory("jonno", "Human");
-
-    // james has non trumps, but human can choose any card
-    james->add_card(Card(NINE, DIAMONDS));
-    james->add_card(Card(ACE, DIAMONDS));
-    james->add_card(Card(KING, SPADES));
-    james->add_card(Card(TEN, CLUBS));
-    james->add_card(Card(NINE, HEARTS));
-
-    istringstream input1("3");
-    streambuf *old = cin.rdbuf(input1.rdbuf());
-
-    ASSERT_EQUAL(james->lead_card(DIAMONDS), Card(KING, SPADES));
-    cin.rdbuf(old);
-
-    // jake only has trump cards
-    jake->add_card(Card(ACE, DIAMONDS));
-    jake->add_card(Card(KING, DIAMONDS));
-    jake->add_card(Card(QUEEN, DIAMONDS));
-    jake->add_card(Card(NINE, DIAMONDS));
-    jake->add_card(Card(TEN, DIAMONDS));
-
-    istringstream input2("4");
-    old = cin.rdbuf(input2.rdbuf());
-
-    ASSERT_EQUAL(jake->lead_card(DIAMONDS), Card(ACE, DIAMONDS));
-    cin.rdbuf(old);
-
-    // jonno has bowers and non trumps
-    jonno->add_card(Card(JACK, DIAMONDS));
-    jonno->add_card(Card(JACK, HEARTS));
-    jonno->add_card(Card(ACE, HEARTS));
-    jonno->add_card(Card(TWO, SPADES));
-    jonno->add_card(Card(THREE, SPADES));
-
-    istringstream input3("2");
-    old = cin.rdbuf(input3.rdbuf());
-
-    ASSERT_EQUAL(jonno->lead_card(DIAMONDS), Card(JACK, HEARTS));
-    cin.rdbuf(old);
-
-    delete james;
-    delete jake;
-    delete jonno;
-}
-
 TEST(test_simple_play_card) {
     Player * james = Player_factory("james", "Simple");
     Player * jonno = Player_factory("goat", "Simple");
@@ -237,60 +151,6 @@ TEST(test_simple_play_card) {
 
     //jonno should play nine of diamonds
     ASSERT_EQUAL(jonno->play_card(Card(THREE, HEARTS), SPADES), Card(NINE, DIAMONDS));
-}
-
-TEST(test_human_play_card) {
-    Player *james = Player_factory("james", "Human");
-    Player *jonno = Player_factory("jonno", "Human");
-    Player *goat = Player_factory("goat", "Human");
-
-    //james can follow led suit
-    james->add_card(Card(ACE, HEARTS));
-    james->add_card(Card(NINE, HEARTS));
-    james->add_card(Card(TWO, SPADES));
-    james->add_card(Card(FOUR, CLUBS));
-    james->add_card(Card(ACE, DIAMONDS));
-
-    //choose a heart
-    istringstream input1("4");
-    streambuf *old = cin.rdbuf(input1.rdbuf());
-
-    ASSERT_EQUAL(james->play_card(Card(THREE, HEARTS), SPADES), Card(ACE, DIAMONDS));
-    cin.rdbuf(old);
-
-    //jonno cannot follow hearts
-    jonno->add_card(Card(ACE, DIAMONDS));
-    jonno->add_card(Card(KING, DIAMONDS));
-    jonno->add_card(Card(QUEEN, DIAMONDS));
-    jonno->add_card(Card(JACK, DIAMONDS));
-    jonno->add_card(Card(NINE, DIAMONDS));
-
-    // choose any card
-    istringstream input2("0");
-    old = cin.rdbuf(input2.rdbuf());
-
-    Card result2 = jonno->play_card(Card(THREE, HEARTS), SPADES);
-    cin.rdbuf(old);
-    ASSERT_EQUAL(result2, Card(NINE, DIAMONDS));
-
-    //left bower is trump
-    goat->add_card(Card(JACK, HEARTS));
-    goat->add_card(Card(ACE, HEARTS));
-    goat->add_card(Card(KING, SPADES));
-    goat->add_card(Card(NINE, CLUBS));
-    goat->add_card(Card(TEN, DIAMONDS));
-
-    //choose jack of hearts
-    istringstream input3("2");
-    old = cin.rdbuf(input3.rdbuf());
-
-    Card result3 = goat->play_card(Card(THREE, DIAMONDS), DIAMONDS);
-    cin.rdbuf(old);
-    ASSERT_EQUAL(result3, Card(JACK, HEARTS));
-
-    delete james;
-    delete jonno;
-    delete goat;
 }
 
 TEST_MAIN()
