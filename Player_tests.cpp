@@ -126,6 +126,10 @@ TEST(test_simple_lead_card) {
 
     //if trump is diamonds, jonno should lead with ace of hearts
     ASSERT_EQUAL(jonno->lead_card(DIAMONDS), Card(ACE, HEARTS));
+
+    delete james;
+    delete jonno;
+    delete jake;
 }
 
 TEST(test_simple_play_card) {
