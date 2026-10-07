@@ -2,6 +2,7 @@
 #include <cassert>
 #include <algorithm>
 using namespace std;
+
 class SimplePlayer : public Player {
     public:
         //ctor
