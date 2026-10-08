@@ -193,7 +193,7 @@ TEST(test_simple_make_trump_dealer_round_2) {
 }
 
 TEST(test_simple_add_and_discard) {
-    Player *james = Player_factory("James", "Simple");
+    Player *james = Player_factory("james", "Simple");
 
     james->add_card(Card(NINE, DIAMONDS));
     james->add_card(Card(ACE, DIAMONDS));
@@ -204,7 +204,11 @@ TEST(test_simple_add_and_discard) {
     Card upcard(ACE, HEARTS);
     james->add_and_discard(upcard);
     // 9 of diamonds should've been discarded
-    ASSERT_NOT_EQUAL(Card(NINE, DIAMONDS), james->lead_card(CLUBS));
+    ASSERT_EQUAL(james->lead_card(CLUBS), Card(ACE, DIAMONDS));
+    ASSERT_EQUAL(james->lead_card(CLUBS), Card(ACE, HEARTS));
+    ASSERT_EQUAL(james->lead_card(CLUBS), Card(KING, SPADES));
+    ASSERT_EQUAL(james->lead_card(CLUBS), Card(NINE, HEARTS));
+    ASSERT_EQUAL(james->lead_card(CLUBS), Card(TEN, CLUBS));
 
     delete james;
 }
@@ -229,6 +233,91 @@ TEST(test_simple_add_and_discard_upcard) {
     ASSERT_NOT_EQUAL(upcard, jonno->lead_card(CLUBS));
 
     delete jonno;
+}
+
+TEST(test_simple_add_and_discard_lbower) {
+    Player *james = Player_factory("james", "Simple");
+
+    james->add_card(Card(JACK, DIAMONDS));
+    james->add_card(Card(NINE, SPADES));
+    james->add_card(Card(TEN, CLUBS));
+    james->add_card(Card(NINE, CLUBS));
+    james->add_card(Card(NINE, HEARTS));
+
+    Card upcard(TEN, HEARTS);
+    james->add_and_discard(upcard);
+
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(TEN, CLUBS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(NINE, CLUBS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(JACK, DIAMONDS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(TEN, HEARTS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(NINE, HEARTS));
+
+    delete james;
+}
+
+TEST(test_simple_add_and_discard_rbower) {
+    Player *james = Player_factory("james", "Simple");
+
+    james->add_card(Card(JACK, HEARTS)); //right bower
+    james->add_card(Card(NINE, SPADES));
+    james->add_card(Card(TEN, CLUBS));
+    james->add_card(Card(NINE, CLUBS));
+    james->add_card(Card(NINE, DIAMONDS));
+
+    Card upcard(TEN, HEARTS);
+    james->add_and_discard(upcard);
+
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(TEN, CLUBS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(NINE, DIAMONDS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(NINE, CLUBS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(JACK, HEARTS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(TEN, HEARTS));
+
+    delete james;
+}
+
+TEST(test_simple_add_and_discard_low_trump) {
+    Player *james = Player_factory("james", "Simple");
+
+    james->add_card(Card(JACK, DIAMONDS)); //left bower, trump
+    james->add_card(Card(NINE, HEARTS));   //lowest card, but trump
+    james->add_card(Card(ACE, DIAMONDS));
+    james->add_card(Card(ACE, CLUBS));
+    james->add_card(Card(ACE, SPADES));
+
+    Card upcard(KING, HEARTS);
+    james->add_and_discard(upcard);
+
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(ACE, DIAMONDS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(ACE, CLUBS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(JACK, DIAMONDS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(KING, HEARTS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(NINE, HEARTS));
+
+    delete james;
+}
+
+TEST(test_simple_add_and_discard_low_trump2) {
+    Player *james = Player_factory("james", "Simple");
+
+    james->add_card(Card(NINE, HEARTS));
+    james->add_card(Card(TEN, HEARTS));
+    james->add_card(Card(QUEEN, HEARTS));
+    james->add_card(Card(KING, HEARTS));
+    james->add_card(Card(JACK, DIAMONDS)); //left bower
+
+    Card upcard(ACE, HEARTS);
+    james->add_and_discard(upcard);
+
+    //nine of hearts is the lowest trump, so it should be discarded
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(JACK, DIAMONDS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(ACE, HEARTS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(KING, HEARTS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(QUEEN, HEARTS));
+    ASSERT_EQUAL(james->lead_card(HEARTS), Card(TEN, HEARTS));
+
+    delete james;
 }
 
 TEST(test_simple_lead_card) {
