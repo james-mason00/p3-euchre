@@ -75,6 +75,123 @@ TEST(test_simple_make_trump_round_2) {
     delete james;
 }
 
+TEST(test_simple_make_trump) {
+    Player * james = Player_factory("james", "Simple");
+    Player * jonno = Player_factory("jonno", "Simple");
+
+    Card up_card =  Card(TEN, DIAMONDS);
+    Suit order_up_suit = CLUBS;
+
+    //has right and left bower, should order up
+    james->add_card(Card(JACK, DIAMONDS));
+    james->add_card(Card(JACK, HEARTS));
+    james->add_card(Card(FOUR, CLUBS));
+    james->add_card(Card(SEVEN, HEARTS));
+    james->add_card(Card(FOUR, SPADES));
+
+    assert(james->make_trump(up_card, false, 1, order_up_suit));
+    assert(order_up_suit == DIAMONDS);
+    assert(james->make_trump(up_card, true, 2, order_up_suit));
+    assert(order_up_suit == HEARTS);
+
+    Card up_card1 = Card(KING, HEARTS);
+    Suit order_up_suit1 = CLUBS;
+
+    //every card in jonnos hands is led next suit, but only one is face/ace (rbower)
+    jonno->add_card(Card(JACK, DIAMONDS));
+    jonno->add_card(Card(FOUR, DIAMONDS));
+    jonno->add_card(Card(THREE, DIAMONDS));
+    jonno->add_card(Card(NINE, DIAMONDS));
+    jonno->add_card(Card(SEVEN, DIAMONDS));
+
+    ASSERT_FALSE(jonno->make_trump(up_card1, false, 1, order_up_suit1));
+    assert(order_up_suit1 == CLUBS);
+    assert(jonno->make_trump(up_card1, false, 2, order_up_suit1));
+    assert(order_up_suit1 == DIAMONDS);
+
+    delete james;
+    delete jonno;
+}
+
+TEST(test_simple_make_trump_lbower) {
+    Player * james =  Player_factory("james", "Simple");
+
+    Card upCard = Card(SEVEN, HEARTS);
+    Suit order_up_suit = CLUBS;
+
+    //lbower considered part of trump suit 
+    james->add_card(Card(JACK, DIAMONDS));
+    james->add_card(Card(ACE, HEARTS));
+    james->add_card(Card(FOUR, CLUBS));
+    james->add_card(Card(THREE, SPADES));
+    james->add_card(Card(FIVE, SPADES));
+
+    assert(james->make_trump(upCard, true, 1, order_up_suit));
+    assert(order_up_suit == HEARTS);
+
+    delete james;
+}
+
+TEST(test_simple_make_trump_1face) {
+    Player * james =  Player_factory("james", "Simple");
+
+    Card upcard(TEN, DIAMONDS);
+    Suit order_up = CLUBS;
+
+    //only 1 diamond face or ace
+    james->add_card(Card(NINE, SPADES));
+    james->add_card(Card(TEN, CLUBS));
+    james->add_card(Card(FOUR, DIAMONDS));
+    james->add_card(Card(TEN, HEARTS));
+    james->add_card(Card(QUEEN, DIAMONDS));
+
+    //for round 1, don't order up
+    ASSERT_FALSE(james->make_trump(upcard, false, 1, order_up));
+    assert(order_up == CLUBS);
+
+    delete james;
+}
+
+TEST(test_simple_make_trump_round_22) {
+    Player * james = Player_factory("james", "Simple");
+
+    Card upcard(THREE, HEARTS);
+
+    //only need 1 face or ace of next suit
+    james->add_card(Card(ACE, DIAMONDS));
+    james->add_card(Card(NINE, SPADES));
+    james->add_card(Card(TEN, CLUBS));
+    james->add_card(Card(NINE, HEARTS));
+    james->add_card(Card(TEN, DIAMONDS));
+
+    Suit order_up_suit = SPADES;
+
+    assert(james->make_trump(upcard, false, 2, order_up_suit));
+    assert(order_up_suit == DIAMONDS);
+
+    delete james;
+}
+
+TEST(test_simple_make_trump_dealer_round_2) {
+    Player * james = Player_factory("james", "Simple");
+
+    Card upcard(THREE, HEARTS);
+    Suit order_up_suit = SPADES;
+
+    //screw the dealer
+    james->add_card(Card(TWO, SPADES));
+    james->add_card(Card(THREE, SPADES));
+    james->add_card(Card(FOUR, SPADES));
+    james->add_card(Card(FIVE, SPADES));
+    james->add_card(Card(SIX, SPADES));
+
+    assert(james->make_trump(upcard, true, 2, order_up_suit));
+    //suit is next suit
+    assert(order_up_suit == DIAMONDS);
+
+    delete james;
+}
+
 TEST(test_simple_add_and_discard) {
     Player *james = Player_factory("James", "Simple");
 
@@ -90,6 +207,28 @@ TEST(test_simple_add_and_discard) {
     ASSERT_NOT_EQUAL(Card(NINE, DIAMONDS), james->lead_card(CLUBS));
 
     delete james;
+}
+
+TEST(test_simple_add_and_discard_upcard) {
+    Player *jonno = Player_factory("i_miss_you", "Simple");
+
+    jonno->add_card(Card(NINE, DIAMONDS));
+    jonno->add_card(Card(TEN, DIAMONDS));
+    jonno->add_card(Card(JACK, DIAMONDS));
+    jonno->add_card(Card(QUEEN, DIAMONDS));
+    jonno->add_card(Card(KING, DIAMONDS));
+
+    Card upcard(EIGHT, DIAMONDS);
+    jonno->add_and_discard(upcard);
+
+    //upcard (eight of diamonds) should've been discarded
+    ASSERT_NOT_EQUAL(upcard, jonno->lead_card(CLUBS));
+    ASSERT_NOT_EQUAL(upcard, jonno->lead_card(CLUBS));
+    ASSERT_NOT_EQUAL(upcard, jonno->lead_card(CLUBS));
+    ASSERT_NOT_EQUAL(upcard, jonno->lead_card(CLUBS));
+    ASSERT_NOT_EQUAL(upcard, jonno->lead_card(CLUBS));
+
+    delete jonno;
 }
 
 TEST(test_simple_lead_card) {
@@ -132,6 +271,22 @@ TEST(test_simple_lead_card) {
     delete jake;
 }
 
+TEST(test_simple_lead_lbower) {
+    Player * jonno = Player_factory("jonno", "Simple");
+
+    //trump is hearts
+    jonno->add_card(Card(ACE, HEARTS));
+    jonno->add_card(Card(KING, HEARTS));
+    jonno->add_card(Card(QUEEN, SPADES));   //lowest non trump
+    jonno->add_card(Card(TEN, HEARTS));
+    jonno->add_card(Card(JACK, DIAMONDS));  //lbower, part of trump!
+    
+    ASSERT_EQUAL(jonno->lead_card(HEARTS), Card(QUEEN, SPADES));
+
+    delete jonno;
+
+}
+
 TEST(test_simple_play_card) {
     Player * james = Player_factory("james", "Simple");
     Player * jonno = Player_factory("goat", "Simple");
@@ -155,6 +310,39 @@ TEST(test_simple_play_card) {
 
     //jonno should play nine of diamonds
     ASSERT_EQUAL(jonno->play_card(Card(THREE, HEARTS), SPADES), Card(NINE, DIAMONDS));
+
+    delete james;
+    delete jonno;
+}
+
+TEST(test_simple_play_lbower) {
+    Player * james = Player_factory("james", "Simple");
+    Player * jonno = Player_factory("jonno", "Simple");
+
+    Card ledCard(TEN, DIAMONDS);
+
+    //james can follow suit with lbower and one other, play lbower bc it's higher
+    james->add_card(Card(JACK, HEARTS));
+    james->add_card(Card(TEN, DIAMONDS));
+    james->add_card(Card(TWO, SPADES));
+    james->add_card(Card(THREE, SPADES));
+    james->add_card(Card(FOUR, SPADES));
+
+    //james should play jack of hearts
+    ASSERT_EQUAL(james->play_card(ledCard, DIAMONDS), Card(JACK, HEARTS));
+
+    //jonno can't follow suit bc lbower is trump suit (HEARTS), not led suit
+    jonno->add_card(Card(JACK, DIAMONDS));
+    jonno->add_card(Card(TWO, SPADES));
+    jonno->add_card(Card(THREE, SPADES));
+    jonno->add_card(Card(FOUR, SPADES));
+    jonno->add_card(Card(FIVE, SPADES));
+
+    //jonno should play two of spades
+    ASSERT_EQUAL(jonno->play_card(ledCard, HEARTS), Card(TWO, SPADES));
+
+    delete james;
+    delete jonno;
 }
 
 TEST_MAIN()
